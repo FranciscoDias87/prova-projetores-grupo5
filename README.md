@@ -6,7 +6,7 @@ Isaac | Caio | Maria Gabriele | Maria Vitoria
 
 ## 📊 Avaliação do Código HTML
 
-**Nota Final: 5,5/10**
+**Nota Final: 4,5/10** = Pònto_Extra 5 = 9.5
 
 ### ✅ Pontos Positivos
 
