@@ -84,3 +84,151 @@ Isaac | Caio | Maria Gabriele | Maria Vitoria
 ---
 
 **Arquivo avaliado:** [index.html](https://github.com/FranciscoDias87/prova-projetores-grupo5/blob/master/index.html)
+
+# Avaliação: **7/10 + Ponto_Extra 5 = 10**
+
+## Análise Geral
+
+O código demonstra **compreensão dos conceitos fundamentais** de JavaScript e DOM manipulation, apropriada para alunos iniciantes. No entanto, há **problemas lógicos importantes** e falta de estruturação que impedem uma nota maior.
+
+---
+
+## ✅ Pontos Positivos
+
+1. **Seleção correta do DOM** - Uso adequado de `querySelector`
+2. **Validação de campos** - Verifica campos vazios
+3. **Validação de data** - Impede datas passadas (bom thinking!)
+4. **Uso de localStorage** - Demonstra conhecimento de persistência de dados
+5. **Estrutura clara** - Código legível e bem indentado
+6. **Criação dinâmica de elementos** - `createElement` e `innerHTML` usados corretamente
+
+---
+
+## ❌ Problemas Críticos
+
+### 1. **Erro de Typo - Variável não declarada** ⚠️
+```javascript
+const contactlnfo = document.querySelector('#contactlnfo').value; // ❌ "lnfo"
+// ...
+contactInfo // ❌ Usado como "Info" depois
+```
+**Impacto**: O código vai quebrar com erro `ReferenceError`
+
+### 2. **Lógica de validação fora de escopo** 🔴
+```javascript
+const teacherName = document.querySelector('#teacher-name').value;
+// ... validações ...
+if (teacherName === '' || ...) {
+    alert('Preencha todos os campos!');
+    return; // ❌ return NÃO funciona fora de função!
+}
+```
+**Impacto**: As validações nunca vão parar a execução - o código continua mesmo com erro
+
+### 3. **reservationDatabase sempre vazio** 🔴
+```javascript
+const reservationDatabase = [];
+// ... adiciona item ...
+reservationDatabase.push(newReservation);
+
+// ... depois ...
+const savedReservations = JSON.parse(localStorage.getItem('reservations')) || [];
+// ❌ Nunca usa savedReservations!
+```
+**Impacto**: Os dados salvos no localStorage nunca são carregados. A cada reload, o array fica vazio.
+
+### 4. **Verificação de disponibilidade inútil** 🟡
+```javascript
+const isReserved = reservationDatabase.some(...);
+// ❌ Calcula mas nunca usa a variável!
+```
+**Impacto**: A verificação de conflitos não faz nada.
+
+### 5. **Event listener no lugar errado** 🟡
+As validações e a criação de reservas estão **fora da função do event listener**. Devem estar **dentro**, senão executam imediatamente ao carregar a página.
+
+---
+
+## 🔧 Sugestões de Melhoria
+
+```javascript
+const reservationForm = document.querySelector('#reservation-form');
+const reservationList = document.querySelector('#reservation-list');
+let reservationDatabase = JSON.parse(localStorage.getItem('reservations')) || [];
+
+// Função auxiliar para renderizar tabela
+function renderReservations() {
+    reservationList.innerHTML = '';
+    reservationDatabase.forEach(res => {
+        const tableRow = document.createElement('tr');
+        tableRow.innerHTML = `
+            <td>${res.teacherName}</td>
+            <td>${res.reservationDate}</td>
+            <td>${res.startTime}</td>
+            <td>${res.projectorModel}</td>
+            <td>${res.contactInfo}</td>
+        `;
+        reservationList.appendChild(tableRow);
+    });
+}
+
+reservationForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    const teacherName = document.querySelector('#teacher-name').value;
+    const reservationDate = document.querySelector('#reservationDate').value;
+    const startTime = document.querySelector('#startTime').value;
+    const projectorModel = document.querySelector('#projectorModel').value;
+    const contactInfo = document.querySelector('#contactInfo').value; // ✅ Corrigido typo
+
+    // Validações
+    if (!teacherName || !reservationDate || !startTime) {
+        alert('Preencha todos os campos!');
+        return;
+    }
+
+    const currentDate = new Date().toISOString().split('T')[0];
+    if (reservationDate < currentDate) {
+        alert('Não é permitido agendar datas passadas!');
+        return;
+    }
+
+    // Verifica conflito
+    const isReserved = reservationDatabase.some(res => 
+        res.projectorModel === projectorModel &&
+        res.reservationDate === reservationDate &&
+        res.startTime === startTime
+    );
+
+    if (isReserved) {
+        alert('Projetor já reservado neste horário!');
+        return;
+    }
+
+    // Adiciona reserva
+    const newReservation = { teacherName, reservationDate, startTime, projectorModel, contactInfo };
+    reservationDatabase.push(newReservation);
+
+    // Salva e renderiza
+    localStorage.setItem('reservations', JSON.stringify(reservationDatabase));
+    renderReservations();
+    reservationForm.reset();
+});
+
+// Renderiza dados ao carregar
+renderReservations();
+```
+
+---
+
+## Resumo
+
+| Aspecto | Score |
+|--------|-------|
+| Sintaxe | 8/10 |
+| Lógica | 5/10 |
+| Estrutura | 7/10 |
+| Tratamento de Erros | 4/10 |
+| **Média Final** | **7/10** |
+
+**Recomendação**: Ótimo começo! Corrigir os bugs e reorganizar o código dentro do event listener. Depois disso, considerar aprender sobre **funções**, **classes** e **modularização**. 🚀
